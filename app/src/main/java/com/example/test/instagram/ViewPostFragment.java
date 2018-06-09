@@ -19,6 +19,14 @@ import com.example.test.instagram.Utils.UniversalImageLoader;
 import com.example.test.instagram.models.Photo;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
+import java.sql.Time;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
 public class ViewPostFragment extends Fragment {
 
     private static final String TAG = "ViewPostFragment";
@@ -65,7 +73,41 @@ public class ViewPostFragment extends Fragment {
             Log.e(TAG, "onCreateView: NullPointerException : " + e.getMessage().toString() );
         }
         setupBottomNavigationView();
+        setupWidgets();
         return view;
+    }
+
+    private void setupWidgets() {
+        String timestampDiff = getTimestampDifference();
+            if(!timestampDiff.equals("0")) {
+                mTimestap.setText(timestampDiff + "일 전");
+            } else  {
+                mTimestap.setText("오늘");
+            }
+    }
+
+    /**
+     * Return a string representing the number of days ago the post was made
+     * @return
+     */
+    private String getTimestampDifference() {
+        Log.d(TAG, "getTimestampDifference: getting timestamp differenc.");
+
+        String difference = "";
+        Calendar c = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.KOREA);
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+        Date today = c.getTime();
+        sdf.format(today);
+        Date timestamp;
+        final String photoTimestamp = mPhoto.getDate_created();
+        try {
+            timestamp = sdf.parse(photoTimestamp);
+            difference = String.valueOf(Math.round(((today.getTime() - timestamp.getTime()) / 1000 / 60 / 60 / 24)));
+        }catch (ParseException e) {
+            Log.e(TAG, "getTimestampDifference: ParseException: " + e.getMessage().toString());
+        }
+        return difference;
     }
 
     /**
