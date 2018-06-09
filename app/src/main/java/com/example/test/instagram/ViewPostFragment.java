@@ -1,6 +1,7 @@
 package com.example.test.instagram;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
@@ -10,18 +11,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.test.instagram.Utils.BottomNavigationViewHelper;
+import com.example.test.instagram.Utils.FirebaseMethods;
+import com.example.test.instagram.Utils.GridImageAdapter;
 import com.example.test.instagram.Utils.SquareImageView;
 import com.example.test.instagram.Utils.UniversalImageLoader;
 import com.example.test.instagram.models.Photo;
+import com.example.test.instagram.models.UserAccountSettings;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -36,6 +50,13 @@ public class ViewPostFragment extends Fragment {
         setArguments(new Bundle());
     }
 
+    //firebase
+    private FirebaseAuth mAuth;
+    private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference myRef;
+    private FirebaseMethods mFirebaseMethods;
+
     //widgets
     private SquareImageView mPostImage;
     private BottomNavigationViewEx bottomNavigationView;
@@ -46,6 +67,11 @@ public class ViewPostFragment extends Fragment {
     //vars
     private Photo mPhoto;
     private int mActivityNumber = 0;
+    private String photoUsername = "";
+    private String profilePhotoUrl = "";
+    private UserAccountSettings mUserAccountSettings;
+
+
 
     @Nullable
     @Override
@@ -72,9 +98,35 @@ public class ViewPostFragment extends Fragment {
         } catch (NullPointerException e){
             Log.e(TAG, "onCreateView: NullPointerException : " + e.getMessage().toString() );
         }
+
+        setupFirebaseAuth();
         setupBottomNavigationView();
-        setupWidgets();
+        getPhotoDetails();
+        //setupWidgets();
         return view;
+    }
+
+    private void getPhotoDetails() {
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference
+                .child(getString(R.string.dbname_users_account_settings))
+                .orderByChild(getString(R.string.field_user_id))
+                .equalTo(mPhoto.getUser_id());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()) {
+                    mUserAccountSettings = singleSnapshot.getValue(UserAccountSettings.class);
+                }
+                setupWidgets();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "onCancelled: query cancelld.");
+            }
+        });
+
     }
 
     private void setupWidgets() {
@@ -84,6 +136,8 @@ public class ViewPostFragment extends Fragment {
             } else  {
                 mTimestap.setText("오늘");
             }
+            UniversalImageLoader.setImage(mUserAccountSettings.getProfile_photo(), mProfileImage, null, "");
+            mUsername.setText(mUserAccountSettings.getUsername());
     }
 
     /**
@@ -152,5 +206,52 @@ public class ViewPostFragment extends Fragment {
         Menu menu = bottomNavigationView.getMenu();
         MenuItem menuItem = menu.getItem(mActivityNumber);
         menuItem.setChecked(true);
+    }
+
+                /*
+    -------------------------------------Firebase-----------------------------------------------------
+     */
+
+    /**
+     *  Setup the firebase auth object
+     */
+
+    private void setupFirebaseAuth(){
+        Log.d(TAG, "setupFirebaseAuth: setting up firebase auth.");
+
+        mAuth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
+
+        mAuthStateListener = new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+
+                if (user != null){
+                    // User is signed in
+                    Log.d(TAG, "onAuthStateChanged: signed_in:" + user.getUid());
+                } else {
+                    // User is signed out
+                    Log.d(TAG, "onAuthStateChanged: signed_out");
+
+                }
+            }
+        };
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mAuth.addAuthStateListener(mAuthStateListener);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAuthStateListener != null){
+            mAuth.removeAuthStateListener(mAuthStateListener);
+        }
     }
 }
