@@ -4,6 +4,8 @@
     <!-- fragment names -->
     <string name="edit_profile_fragment">프로필 수정</string>
     <string name="view_post_fragment">View Post</string>
+    <string name="view_comments_fragment">View Comments</string>
+
     <string name="sign_out_fragment">로그아웃</string>
     <string name="profile_fragment">프로필</string>
 
@@ -32,6 +34,7 @@
     <string name="field_photo_id">photo_id</string>
     <string name="field_tags">tags</string>
     <string name="field_image_path">image_path</string>
+    <string name="field_comments">comments</string>
 
 
     <!-- photo types -->

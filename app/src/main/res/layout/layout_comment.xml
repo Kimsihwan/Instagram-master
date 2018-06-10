@@ -74,7 +74,7 @@
                 android:layout_toRightOf="@+id/comment_time_posted"/>
 
             <TextView
-                android:layout_width="  wrap_content"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="답글 달기"
                 android:textStyle="bold"
