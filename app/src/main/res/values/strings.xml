@@ -5,9 +5,9 @@
     <string name="edit_profile_fragment">프로필 수정</string>
     <string name="view_post_fragment">View Post</string>
     <string name="view_comments_fragment">View Comments</string>
-
     <string name="sign_out_fragment">로그아웃</string>
     <string name="profile_fragment">프로필</string>
+    <string name="view_profile_fragment">ViewProfile</string>
 
     <!-- dialog names -->
     <string name="confirm_password_dialog">ConfirmPasswordDialog</string>
@@ -46,12 +46,14 @@
     <string name="selected_image">selected_image</string>
     <string name="selected_bitmap">selected_bitmap</string>
     <string name="return_to_fragment">return_to_fragment</string>
+    <string name="intent_user">intent_user</string>
 
     <!-- Bundle arg name -->
     <string name="activity_number">activity_number</string>
 
     <!-- activity names -->
     <string name="profile_activity">profile Activity</string>
+    <string name="search_activity">search Activity</string>
 
     <!-- strings -->
     <string name="gallery">GALLERY</string>

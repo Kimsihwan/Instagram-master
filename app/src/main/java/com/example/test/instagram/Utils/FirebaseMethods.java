@@ -442,15 +442,15 @@ public class FirebaseMethods {
                                     .getValue(UserAccountSettings.class)
                                     .getPosts()
                     );
-                    settings.setFollwers(
+                    settings.setFollowers(
                             ds.child(userID)
                                     .getValue(UserAccountSettings.class)
-                                    .getFollwers()
+                                    .getFollowers()
                     );
-                    settings.setFollwing(
+                    settings.setFollowing(
                             ds.child(userID)
                                     .getValue(UserAccountSettings.class)
-                                    .getFollwing()
+                                    .getFollowing()
                     );
 
                     Log.d(TAG, "getUserAccountSettings: retrieved user_account_settings information:" + settings.toString());
