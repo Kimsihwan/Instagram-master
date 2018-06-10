@@ -17,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.test.instagram.R;
+import com.example.test.instagram.models.Comment;
 import com.example.test.instagram.models.Like;
 import com.example.test.instagram.models.Photo;
 import com.example.test.instagram.models.User;
@@ -34,9 +35,14 @@ import com.nostra13.universalimageloader.utils.L;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 public class ViewPostFragment extends Fragment {
@@ -63,7 +69,7 @@ public class ViewPostFragment extends Fragment {
     //widgets
     private SquareImageView mPostImage;
     private BottomNavigationViewEx bottomNavigationView;
-    private TextView mBackLabel, mCaption, mUsername, mTimestap, mLikes;
+    private TextView mBackLabel, mCaption, mUsername, mTimestap, mLikes, mComments;
     private ImageView mBackArrow, mEllipse, mHeartRed, mHeartWhite, mProfileImage, mComment;
 
 
@@ -99,17 +105,60 @@ public class ViewPostFragment extends Fragment {
         mProfileImage = view.findViewById(R.id.profile_photo);
         mLikes = view.findViewById(R.id.image_likes);
         mComment = view.findViewById(R.id.speech_bubble);
+        mComments = view.findViewById(R.id.image_comments_link);
 
 
         mHeart = new Heart(mHeartWhite, mHeartRed);
         mGestureDetector = new GestureDetector(getActivity(), new GestureListner());
 
         try {
-            mPhoto = getPhotoFromBundle();
-            UniversalImageLoader.setImage(mPhoto.getImage_path(), mPostImage, null, "");
+            //mPhoto = getPhotoFromBundle();
+            String photo_id = getPhotoFromBundle().getPhoto_id();
+
+            UniversalImageLoader.setImage(getPhotoFromBundle().getImage_path(), mPostImage, null, "");
             mActivityNumber = getActivityNumFromBundle();
-            getPhotoDetails();
-            getLikesString();
+            Query query = FirebaseDatabase.getInstance().getReference()
+                    .child(getString(R.string.dbname_photos))
+                    .orderByChild(getString(R.string.field_photo_id))
+                    .equalTo(photo_id);
+            query.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for(DataSnapshot singleSnapshot : dataSnapshot.getChildren()){
+                        Photo newPhoto = new Photo();
+                        Map<String, Object> objectMap = (HashMap<String, Object>) singleSnapshot.getValue();
+
+                        newPhoto.setCaption(objectMap.get(getString(R.string.field_caption)).toString());
+                        newPhoto.setTags(objectMap.get(getString(R.string.field_tags)).toString());
+                        newPhoto.setPhoto_id(objectMap.get(getString(R.string.field_photo_id)).toString());
+                        newPhoto.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
+                        newPhoto.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
+                        newPhoto.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                        List<Comment> commentList = new ArrayList<Comment>();
+                        for (DataSnapshot dSnapshot : singleSnapshot
+                                .child(getString(R.string.field_comments)).getChildren()) {
+                            Comment comment = new Comment();
+                            comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                            comment.setComment(dataSnapshot.getValue(Comment.class).getComment());
+                            comment.setDate_created(dataSnapshot.getValue(Comment.class).getDate_created());
+                            commentList.add(comment);
+                        }
+                        newPhoto.setComments(commentList);
+
+                        mPhoto = newPhoto;
+                        getPhotoDetails();
+                        getLikesString();
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
 
         } catch (NullPointerException e){
             Log.e(TAG, "onCreateView: NullPointerException : " + e.getMessage().toString() );
@@ -337,6 +386,21 @@ public class ViewPostFragment extends Fragment {
         mUsername.setText(mUserAccountSettings.getUsername());
         mLikes.setText(mLikesString);
         mCaption.setText(mPhoto.getCaption());
+
+        if (mPhoto.getComments().size() > 0) {
+            mComments.setText("댓글 " + mPhoto.getComments().size() + "개 보기");
+        }else {
+            mComments.setText("");
+        }
+
+        mComments.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "onClick: navigating to comments thread");
+
+                mOnCommentThreadSelectedListener.onCommentThreadSelectedListener(mPhoto);
+            }
+        });
 
         mBackArrow.setOnClickListener(new View.OnClickListener() {
             @Override

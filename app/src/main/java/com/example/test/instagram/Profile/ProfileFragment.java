@@ -27,6 +27,7 @@ import com.example.test.instagram.Utils.BottomNavigationViewHelper;
 import com.example.test.instagram.Utils.FirebaseMethods;
 import com.example.test.instagram.Utils.GridImageAdapter;
 import com.example.test.instagram.Utils.UniversalImageLoader;
+import com.example.test.instagram.models.Comment;
 import com.example.test.instagram.models.Like;
 import com.example.test.instagram.models.Photo;
 import com.example.test.instagram.models.UserAccountSettings;
@@ -154,6 +155,18 @@ public class ProfileFragment extends Fragment {
                     photo.setUser_id(objectMap.get(getString(R.string.field_user_id)).toString());
                     photo.setDate_created(objectMap.get(getString(R.string.field_date_created)).toString());
                     photo.setImage_path(objectMap.get(getString(R.string.field_image_path)).toString());
+
+                    ArrayList<Comment> comments = new ArrayList<Comment>();
+                    for (DataSnapshot dSnapshot : singleSnapshot
+                            .child(getString(R.string.field_comments)).getChildren()){
+                        Comment comment = new Comment();
+                        comment.setUser_id(dSnapshot.getValue(Comment.class).getUser_id());
+                        comment.setComment(dSnapshot.getValue(Comment.class).getComment());
+                        comment.setDate_created(dSnapshot.getValue(Comment.class).getDate_created());
+                        comments.add(comment);
+                    }
+
+                    photo.setComments(comments);
 
                     List<Like> likesList = new ArrayList<Like>();
                     for (DataSnapshot dSnapshot : singleSnapshot
