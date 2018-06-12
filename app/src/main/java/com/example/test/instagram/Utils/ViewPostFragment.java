@@ -84,6 +84,7 @@ public class ViewPostFragment extends Fragment {
     private Boolean mLikeByCurrentUser;
     private StringBuilder mUsers;
     private String mLikesString = "";
+    private User mCurrentUser;
 
 
 
@@ -111,6 +112,13 @@ public class ViewPostFragment extends Fragment {
         mHeart = new Heart(mHeartWhite, mHeartRed);
         mGestureDetector = new GestureDetector(getActivity(), new GestureListner());
 
+        setupFirebaseAuth();
+        setupBottomNavigationView();
+
+        return view;
+    }
+
+    private void init(){
         try {
             //mPhoto = getPhotoFromBundle();
             String photo_id = getPhotoFromBundle().getPhoto_id();
@@ -147,8 +155,10 @@ public class ViewPostFragment extends Fragment {
                         newPhoto.setComments(commentList);
 
                         mPhoto = newPhoto;
+
+                        getCurrentUser();
                         getPhotoDetails();
-                        getLikesString();
+                        //getLikesString();
 
                     }
                 }
@@ -163,11 +173,14 @@ public class ViewPostFragment extends Fragment {
         } catch (NullPointerException e){
             Log.e(TAG, "onCreateView: NullPointerException : " + e.getMessage().toString() );
         }
+    }
 
-        setupFirebaseAuth();
-        setupBottomNavigationView();
-
-        return view;
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(isAdded()){
+            init();
+        }
     }
 
     @Override
@@ -211,7 +224,7 @@ public class ViewPostFragment extends Fragment {
 
                             String[] splitUsers = mUsers.toString().split(",");
 
-                            if(mUsers.toString().contains(mUserAccountSettings.getUsername() + ",")) {
+                            if(mUsers.toString().contains(mCurrentUser.getUsername() + ",")) {
                                 mLikeByCurrentUser = true;
                             } else {
                                 mLikeByCurrentUser = false;
@@ -260,6 +273,28 @@ public class ViewPostFragment extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
+            }
+        });
+    }
+
+    private void getCurrentUser(){
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference
+                .child(getString(R.string.dbname_users))
+                .orderByChild(getString(R.string.field_user_id))
+                .equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for ( DataSnapshot singleSnapshot :  dataSnapshot.getChildren()){
+                    mCurrentUser = singleSnapshot.getValue(User.class);
+                }
+                getLikesString();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.d(TAG, "onCancelled: query cancelled.");
             }
         });
     }
