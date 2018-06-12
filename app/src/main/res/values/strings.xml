@@ -18,6 +18,8 @@
 
     <!-- Firebase database fileds -->
     <string name="dbname_users">users</string>
+    <string name="dbname_followers">followers</string>
+    <string name="dbname_following">following</string>
     <string name="dbname_users_account_settings">users_account_settings</string>
     <string name="dbname_user_photos">user_photos</string>
     <string name="dbname_photos">photos</string>

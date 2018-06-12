@@ -69,7 +69,7 @@ public class ViewProfileFragment extends Fragment {
 
 
     //widgets
-    private TextView mPosts, mFollowers, mFollowing, mDisplayName, mUsername, mWebsite, mDescription;
+    private TextView mPosts, mFollowers, mFollowing, mDisplayName, mUsername, mWebsite, mDescription, mFollow, mUnfollow;
     private ProgressBar mProgressBar;
     private CircleImageView mProfilePhoto;
     private GridView gridView;
@@ -77,6 +77,7 @@ public class ViewProfileFragment extends Fragment {
     private ImageView profileMenu;
     private BottomNavigationViewEx bottomNavigationView;
     private Context mContext;
+    private TextView editProfile;
 
     //vars
     private User mUser;
@@ -100,7 +101,10 @@ public class ViewProfileFragment extends Fragment {
         toolbar = (Toolbar) view.findViewById(R.id.profileToolBar);
         profileMenu = (ImageView) view.findViewById(R.id.profileMenu);
         bottomNavigationView = (BottomNavigationViewEx) view.findViewById(R.id.bottomNavViewBar);
+        mFollow = (TextView) view.findViewById(R.id.follow);
+        mUnfollow = (TextView) view.findViewById(R.id.unfollow);
         mContext = getActivity();
+        editProfile = (TextView) view.findViewById(R.id.textEditProfile);
         Log.d(TAG, "onCreateView: stared.");
 
 
@@ -117,26 +121,73 @@ public class ViewProfileFragment extends Fragment {
 
         setupBottomNavigationView();
         setupToolbar();
-
         setupFirebaseAuth();
+
+        isFollowing();
+
+        mFollow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "onClick: now following :" + mUser.getUsername());
+
+                FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwing 필드 생성
+                        .child(getString(R.string.dbname_following))
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .child(mUser.getUser_id())
+                        .child(getString(R.string.field_user_id))
+                        .setValue(mUser.getUser_id());
+
+                FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwers필드 생성
+                        .child(getString(R.string.dbname_followers))
+                        .child(mUser.getUser_id())
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .child(getString(R.string.field_user_id))
+                        .setValue(FirebaseAuth.getInstance().getCurrentUser().getUid());
+                setFollowing();
+
+            }
+        });
+
+        mUnfollow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d(TAG, "onClick: now following :" + mUser.getUsername());
+
+                FirebaseDatabase.getInstance().getReference()        //db에있는 following필드 삭제
+                        .child(getString(R.string.dbname_following))
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .child(mUser.getUser_id())
+                        .removeValue();
+
+                FirebaseDatabase.getInstance().getReference()      //db에있는 followers필드 삭제
+                        .child(getString(R.string.dbname_followers))
+                        .child(mUser.getUser_id())
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                        .removeValue();
+                setUnfollowing();
+
+            }
+        });
 
 
         //setupGridView();
 
-//        TextView editProfile = (TextView) view.findViewById(R.id.textEditProfile);
-//        editProfile.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Log.d(TAG, "onClick: navigating to " + mContext.getString(R.string.edit_profile_fragment));
-//                Intent intent = new Intent(getActivity(), AccountSettingsActivity.class);
-//                intent.putExtra(getString(R.string.calling_activity), getString(R.string.profile_activity));
-//                startActivity(intent);
-//                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
-//            }
-//        });
+
+        editProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "onClick: navigating to " + mContext.getString(R.string.edit_profile_fragment));
+                Intent intent = new Intent(getActivity(), AccountSettingsActivity.class);
+                intent.putExtra(getString(R.string.calling_activity), getString(R.string.profile_activity));
+                startActivity(intent);
+                getActivity().overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+            }
+        });
 
         return view;
     }
+
+
 
     private void init(){
         //set the profile widgets
@@ -218,6 +269,57 @@ public class ViewProfileFragment extends Fragment {
             }
         });
     }
+
+    private void isFollowing(){ //이건 팔로잉하고나서 나갔다와도 팔로잉상태인것
+        Log.d(TAG, "isFollowing: checking if following this users");
+        Log.d(TAG, "isFollowing: 이 사용자를 따르는 지 확인하기");
+        setUnfollowing();
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference.child(getString(R.string.dbname_following))
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                .orderByChild(getString(R.string.field_user_id)).equalTo(mUser.getUser_id());
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for(DataSnapshot singleSnapshot :  dataSnapshot.getChildren()){
+                    Log.d(TAG, "onDataChange: found user:" + singleSnapshot.getValue());
+
+                    setFollowing();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
+    private void setFollowing(){
+        Log.d(TAG, "setFollowing: updating UI for following this user");
+        mFollow.setVisibility(View.GONE);
+        mUnfollow.setVisibility(View.VISIBLE);
+        editProfile.setVisibility(View.GONE);
+    }
+
+    private void setUnfollowing(){
+        Log.d(TAG, "setFollowing: updating UI for Unfollowing this user");
+        mFollow.setVisibility(View.VISIBLE);
+        mUnfollow.setVisibility(View.GONE);
+        editProfile.setVisibility(View.GONE);
+    }
+
+
+    private void setCurrentUserProfile(){
+        Log.d(TAG, "setFollowing: updating UI for showing this user their own profile");
+        mFollow.setVisibility(View.GONE);
+        mUnfollow.setVisibility(View.GONE);
+        editProfile.setVisibility(View.VISIBLE);
+    }
+
 
     private void setupImageGrid(final ArrayList<Photo> photos){
         //setup our image grid
