@@ -23,12 +23,14 @@
     <string name="dbname_users_account_settings">users_account_settings</string>
     <string name="dbname_user_photos">user_photos</string>
     <string name="dbname_photos">photos</string>
+    <string name="field_date">date</string>
     <string name="field_username">username</string>
     <string name="field_email">email</string>
     <string name="field_display_name">display_name</string>
     <string name="field_website">website</string>
     <string name="field_description">description</string>
     <string name="field_phone_number">phone_number</string>
+    <string name="field_device_token">device_token</string>
     <string name="field_user_id">user_id</string>
     <string name="field_likes">likes</string>
     <string name="field_caption">caption</string>

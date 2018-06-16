@@ -27,6 +27,9 @@ import com.example.test.instagram.models.Photo;
 import com.example.test.instagram.models.UserAccountSettings;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import com.nostra13.universalimageloader.core.ImageLoader;
 
@@ -54,6 +57,7 @@ public class HomeActivity extends AppCompatActivity implements MainfeedListAdapt
     private ViewPager mViewPager;
     private FrameLayout mFrameLayout;
     private RelativeLayout mRelativeLayout;
+    private DatabaseReference mUserRef;
 
 
     @Override
@@ -64,6 +68,13 @@ public class HomeActivity extends AppCompatActivity implements MainfeedListAdapt
         mViewPager = (ViewPager) findViewById(R.id.viewpager_container);
         mFrameLayout = (FrameLayout) findViewById(R.id.container);
         mRelativeLayout = (RelativeLayout) findViewById(R.id.relLayoutParent);
+        mAuth = FirebaseAuth.getInstance();
+        try {
+            mUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid());
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
+
 
         initImageLoader();
         setupBottomNavigationView();
@@ -195,6 +206,12 @@ public class HomeActivity extends AppCompatActivity implements MainfeedListAdapt
         mAuth.addAuthStateListener(mAuthStateListener);
         mViewPager.setCurrentItem(Home_FRAGMENT);
         checkCurrentUser(mAuth.getCurrentUser());
+        try {
+            mUserRef.child("online").setValue("true");
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
+
     }
 
     @Override
@@ -202,6 +219,15 @@ public class HomeActivity extends AppCompatActivity implements MainfeedListAdapt
         super.onStop();
         if (mAuthStateListener != null){
             mAuth.removeAuthStateListener(mAuthStateListener);
+        }
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null) {
+            try {
+                mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+            } catch (NullPointerException e){
+                e.printStackTrace();
+            }
+
         }
     }
 

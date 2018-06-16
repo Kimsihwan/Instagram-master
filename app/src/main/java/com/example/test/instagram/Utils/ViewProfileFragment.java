@@ -40,7 +40,9 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -134,20 +136,30 @@ public class ViewProfileFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "onClick: now following :" + mUser.getUsername());
-
+                final String currentDate = DateFormat.getDateTimeInstance().format(new Date());
                 FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwing 필드 생성
-                        .child(getString(R.string.dbname_following))
-                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
-                        .child(mUser.getUser_id())
-                        .child(getString(R.string.field_user_id))
+                        .child(getString(R.string.dbname_following)) //following
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())  //자기 아이디
+                        .child(mUser.getUser_id())  //user_id 상대방 아이디
+                        .child(getString(R.string.field_user_id))  // userid
                         .setValue(mUser.getUser_id());
 
+                FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwing 필드 생성
+                        .child(getString(R.string.dbname_following)) //following
+                        .child(FirebaseAuth.getInstance().getCurrentUser().getUid())  //자기 아이디
+                        .child(mUser.getUser_id())  //user_id 상대방 아이디
+                        .child(getString(R.string.field_date))  // userid
+                        .setValue(currentDate);
+
+
+
                 FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwers필드 생성
-                        .child(getString(R.string.dbname_followers))
+                        .child(getString(R.string.dbname_followers)) //followers
                         .child(mUser.getUser_id())
                         .child(FirebaseAuth.getInstance().getCurrentUser().getUid())
                         .child(getString(R.string.field_user_id))
                         .setValue(FirebaseAuth.getInstance().getCurrentUser().getUid());
+
                 setFollowing();
 
             }

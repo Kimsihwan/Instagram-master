@@ -27,6 +27,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
@@ -260,6 +261,8 @@ public class FirebaseMethods {
                     .child(mContext.getString(R.string.field_phone_number))
                     .setValue(phoneNumber);
         }
+
+
     }
 
     /**
@@ -319,11 +322,14 @@ public class FirebaseMethods {
      * @param username
      */
     public void registerNewEmail(final String email, String password, final String username) {
+
+
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         Log.d(TAG, "createUserWithEmail:onComplete:" + task.isSuccessful());
+
 
                         if (!task.isSuccessful()) {
                             Toast.makeText(mContext, R.string.auth_failed, Toast.LENGTH_SHORT).show();
