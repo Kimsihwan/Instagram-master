@@ -21,6 +21,7 @@ import com.example.test.instagram.R;
 import com.example.test.instagram.Utils.BottomNavigationViewHelper;
 import com.example.test.instagram.Utils.UserListAdapter;
 import com.example.test.instagram.models.User;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -47,6 +48,8 @@ public class SearchActivity extends AppCompatActivity {
     //vars
     private List<User> mUserList;
     private UserListAdapter mAdapter;
+    private DatabaseReference mUserRef;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,10 +58,22 @@ public class SearchActivity extends AppCompatActivity {
         mSearchParam = (EditText) findViewById(R.id.search);
         mListView = (ListView) findViewById(R.id.listView);
         Log.d(TAG, "onCreate: started.");
+        mAuth = FirebaseAuth.getInstance();
+        mUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid());
 
         hideSoftKeyboard();
         setupBottomNavigationView();
         initTextListener();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        try {
+            mUserRef.child("online").setValue("true");
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
     private void initTextListener(){
@@ -128,10 +143,13 @@ public class SearchActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Log.d(TAG, "onItemClick: selected user: " + mUserList.get(position).toString());
 
+                final String user_id = mUserList.get(position).getUser_id();
+
                 //navigate to profile activity
                 Intent intent =  new Intent(SearchActivity.this, ProfileActivity.class);
                 intent.putExtra(getString(R.string.calling_activity), getString(R.string.search_activity));
                 intent.putExtra(getString(R.string.intent_user), mUserList.get(position));
+                intent.putExtra("user_id", user_id);
                 startActivity(intent);
             }
         });

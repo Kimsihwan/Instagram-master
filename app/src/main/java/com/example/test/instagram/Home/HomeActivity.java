@@ -137,7 +137,7 @@ public class HomeActivity extends AppCompatActivity implements MainfeedListAdapt
         tabLayout.setupWithViewPager(mViewPager);
 
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_camera);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_name);
+        tabLayout.getTabAt(1).setIcon(R.drawable.main);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_message);
     }
 

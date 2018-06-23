@@ -17,10 +17,14 @@ import android.widget.Toast;
 import com.example.test.instagram.Home.HomeActivity;
 import com.example.test.instagram.R;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -29,6 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     //firebase
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthStateListener;
+    private DatabaseReference mUserDatabase;
 
     private Context mContext;
     private ProgressBar mProgressBar;
@@ -45,6 +50,8 @@ public class LoginActivity extends AppCompatActivity {
         mPassword = (EditText) findViewById(R.id.input_password);
         mContext = LoginActivity.this;
         Log.d(TAG, "onCreate: stared.");
+
+        mUserDatabase = FirebaseDatabase.getInstance().getReference().child("users");
 
         mPleaseWait.setVisibility(View.GONE);
         mProgressBar.setVisibility(View.GONE);
@@ -101,9 +108,18 @@ public class LoginActivity extends AppCompatActivity {
                                      } else{
                                          try{
                                              if(user.isEmailVerified()){
-                                                 Log.d(TAG, "onComplete: success. email is verified.");
-                                                 Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                                 startActivity(intent);
+
+                                                 String current_user_id = mAuth.getCurrentUser().getUid();
+                                                 String devicetoken = FirebaseInstanceId.getInstance().getToken();
+
+                                                 mUserDatabase.child(current_user_id).child("device_token").setValue(devicetoken).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                     @Override
+                                                     public void onSuccess(Void aVoid) {
+                                                         Log.d(TAG, "onComplete: success. email is verified.");
+                                                         Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                                         startActivity(intent);
+                                                     }
+                                                 });
                                              } else{
                                                  Toast.makeText(mContext, "이메일 인증이 되지 않았습니다. \n 이메일 확인 해주세요.", Toast.LENGTH_SHORT).show();
                                                  mProgressBar.setVisibility(View.GONE);

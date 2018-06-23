@@ -19,6 +19,8 @@ import com.example.test.instagram.Utils.ViewProfileFragment;
 import com.example.test.instagram.models.Photo;
 import com.example.test.instagram.models.User;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class ProfileActivity extends AppCompatActivity implements
         ProfileFragment.OnGridImageSelectedListener,
@@ -26,6 +28,7 @@ public class ProfileActivity extends AppCompatActivity implements
         ViewProfileFragment.OnGridImageSelectedListener{
 
     private static final String TAG = "ProfileActivity";
+
 
     @Override
     public void onCommentThreadSelectedListener(Photo photo) {
@@ -68,6 +71,9 @@ public class ProfileActivity extends AppCompatActivity implements
 
     private ProgressBar mProgressBar;
     private ImageView profilePhoto;
+    private DatabaseReference mUserRef;
+    private FirebaseAuth mAuth;
+
 
 
     @Override
@@ -75,10 +81,22 @@ public class ProfileActivity extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
         Log.d(TAG, "onCreate: started.");
+        mAuth = FirebaseAuth.getInstance();
+        mUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid());
 
         init();
 
 
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        try {
+            mUserRef.child("online").setValue("true");
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
     private void init(){

@@ -2,7 +2,7 @@ package com.example.test.instagram.Utils;
 
 public class Messages {
 
-    private String message, type;
+    private String message, type, email;
     private long time;
     private boolean seen;
 
@@ -14,6 +14,14 @@ public class Messages {
 
     public String getFrom() {
         return from;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public void setFrom(String from) {

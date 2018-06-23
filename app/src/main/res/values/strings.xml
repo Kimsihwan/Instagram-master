@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Instagram</string>
+    <string name="app_name">Distagram</string>
 
     <!-- fragment names -->
     <string name="edit_profile_fragment">프로필 수정</string>

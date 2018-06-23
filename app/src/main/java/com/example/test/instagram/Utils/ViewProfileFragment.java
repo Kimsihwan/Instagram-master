@@ -144,6 +144,18 @@ public class ViewProfileFragment extends Fragment {
                         .child(getString(R.string.field_user_id))  // userid
                         .setValue(mUser.getUser_id());
 
+                String newNotificationId = myRef.push().getKey();
+                HashMap<String, String> notificationData = new HashMap<>();
+                notificationData.put("from", FirebaseAuth.getInstance().getCurrentUser().getUid());
+                notificationData.put("type", "request");
+
+                FirebaseDatabase.getInstance().getReference()
+                        .child("notifications")
+                        .child(mUser.getUser_id())
+                        .child(newNotificationId)
+                        .setValue(notificationData);
+
+
                 FirebaseDatabase.getInstance().getReference() // 파이어베이스 DB에 follwing 필드 생성
                         .child(getString(R.string.dbname_following)) //following
                         .child(FirebaseAuth.getInstance().getCurrentUser().getUid())  //자기 아이디

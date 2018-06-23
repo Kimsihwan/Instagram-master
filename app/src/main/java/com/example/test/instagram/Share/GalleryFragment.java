@@ -22,6 +22,9 @@ import com.example.test.instagram.R;
 import com.example.test.instagram.Utils.FilePaths;
 import com.example.test.instagram.Utils.FileSearch;
 import com.example.test.instagram.Utils.GridImageAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
@@ -41,6 +44,10 @@ public class GalleryFragment extends android.support.v4.app.Fragment {
     private Spinner directorySpinner;
     private String mAppend = "file:/";
     private String mSelectedImage;
+    private DatabaseReference mUserRef;
+
+    //firebase
+    private FirebaseAuth mAuth;
 
 
     //vars
@@ -56,6 +63,8 @@ public class GalleryFragment extends android.support.v4.app.Fragment {
         mProgressBar = (ProgressBar) view.findViewById(R.id.progressBar);
         mProgressBar.setVisibility(View.GONE);
         directories = new ArrayList<>();
+        mAuth = FirebaseAuth.getInstance();
+        mUserRef = FirebaseDatabase.getInstance().getReference().child("users").child(mAuth.getCurrentUser().getUid());
         Log.d(TAG, "onCreateView: stared.");
 
         ImageView shareClose = (ImageView) view.findViewById(R.id.ivCloseShare);
@@ -92,6 +101,16 @@ public class GalleryFragment extends android.support.v4.app.Fragment {
         init();
 
         return  view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        try {
+            mUserRef.child("online").setValue("true");
+        } catch (NullPointerException e){
+            e.printStackTrace();
+        }
     }
 
     private boolean isRootTask(){

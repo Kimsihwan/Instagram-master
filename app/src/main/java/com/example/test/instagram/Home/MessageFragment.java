@@ -17,11 +17,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
+import com.example.test.instagram.Login.LoginActivity;
+import com.example.test.instagram.Login.RegisterActivity;
 import com.example.test.instagram.Profile.ProfileActivity;
 import com.example.test.instagram.R;
 import com.example.test.instagram.Utils.Friends;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -39,6 +42,7 @@ public class MessageFragment extends Fragment {
     private DatabaseReference mFriendsDatabase;
     private DatabaseReference mUserDatabase;
     private DatabaseReference mUsersettingDB;
+    private DatabaseReference mUserRef;
 
     private FirebaseAuth mAuth;
     private String mCurrent_user_id;
@@ -48,14 +52,13 @@ public class MessageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
         mMainView = inflater.inflate(R.layout.fragment_messages, container, false);
-
-        mFriendsList = mMainView.findViewById(R.id.friends_list);
-        try {
-            mAuth = FirebaseAuth.getInstance();
-            mCurrent_user_id = mAuth.getCurrentUser().getUid();
-        } catch (NullPointerException e){
-            e.printStackTrace();
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
+        mAuth = FirebaseAuth.getInstance();
+        if(mAuth.getCurrentUser() != null) {
+            mUserRef = reference.child("users").child(mAuth.getCurrentUser().getUid());
         }
+        mCurrent_user_id = mAuth.getCurrentUser().getUid();
+        mFriendsList = mMainView.findViewById(R.id.friends_list);
 
         mFriendsDatabase = FirebaseDatabase.getInstance().getReference().child("following").child(mCurrent_user_id);
         mFriendsDatabase.keepSynced(true);
@@ -77,6 +80,10 @@ public class MessageFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if(currentUser != null) {
+            mUserRef.child("online").setValue("true");
+        }
         FirebaseRecyclerAdapter<Friends, FriendViewHolder> friendsRecyclerViewAdapter = new FirebaseRecyclerAdapter<Friends, FriendViewHolder>(
 
                 Friends.class,
